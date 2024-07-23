@@ -6,6 +6,8 @@
 #define GAME_STATE_START        2
 #define GAME_STATE_PLAY         3
 // スプライト
+#define GAME_SPRITE_BULLET          0x00
+#define GAME_SPRITE_BULLET_OFFSET   0x24
 #define GAME_SPRITE_ENEMY           0x48
 #define GAME_SPRITE_ENEMY_OFFSET    0x48
 #define GAME_SPRITE_SHIP            0x6c

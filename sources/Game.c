@@ -1,13 +1,18 @@
 // Game.c : ゲーム画面
 #include "bios.h"
 #include "System.h"
+#include "Math.h"
 #include "App.h"
 #include "Game.h"
 #include "Ship.h"
 #include "Shot.h"
 #include "Enemy.h"
+#include "Bullet.h"
 // 変数の定義
 u8 gameFlag;   // フラグ
+static u8 gameBackAngle;   // 撃ち返し
+static i16 gameBackCos;
+static i16 gameBackSin;
 static void GameInitialize(void);
 static void GameLoad(void);
 static void GameStart(void);
@@ -22,6 +27,7 @@ void GameUpdate(void) { // ゲームを更新する
     ShipUpdate();   // 自機の更新
     ShotUpdate();   // ショットの更新
     EnemyUpdate();  // 敵の更新
+    BulletUpdate(); // 弾の更新
 }
 static void GameInitialize(void) { // ゲームを初期化する
     // スプライトのクリア
@@ -29,6 +35,7 @@ static void GameInitialize(void) { // ゲームを初期化する
     ShipInitialize();   // 自機の初期化
     ShotInitialize();   // ショットの初期化
     EnemyInitialize();  // 敵の初期化
+    BulletInitialize(); // 弾の初期化
     gameFlag = 0; // フラグの初期化
     // 状態の更新
     appState = GAME_STATE_LOAD;
@@ -69,6 +76,7 @@ static void GamePlay(void) { // ゲームをプレイする
     if (gameFlag & (1<<GAME_FLAG_PAUSE)) return; // 一時停止
     GameCheckShotEnemy();
 }
+static void GameShootBack(ENEMY* ix);
 static void GameCheckShotEnemy(void) { // ショットと敵のヒットチェックを行う
     SHOT* iy = (SHOT*)shot;
     for (u8 c=0;c<SHOT_SIZE;c++,iy++) {// ショットの走査
@@ -85,7 +93,42 @@ static void GameCheckShotEnemy(void) { // ショットと敵のヒットチェ�
             ix->nodamage = 0x80;// 敵のノーダメージの更新
             ix->state = ENEMY_STATE_BOMB;// 敵の状態の更新
             ix->phase = APP_PHASE_NULL;
+            GameShootBack(ix);// 敵の撃ち返し
             iy->state = SHOT_STATE_NULL;// ショットの状態の更新
         }
     }
+}
+static void getvec(ENEMY* ix) {
+    // ベクトルの取得
+    i8 x = ship.x - ix->xi;
+    u8 y = ship.y - ix->yi;
+    // 必ず下向きに撃ち返す
+    if (y & (1<<7)) {
+        y >>= 1;
+        x >>= 1;
+    }
+    i16 hl = ((i16)x<<8)|y;
+    // 方向の取得
+    gameBackAngle = SystemGetAtan2(hl);
+    // 弾の位置の設定
+    bulletEntry.x = ix->x;
+    bulletEntry.y = ix->y;
+}
+static void b(void) {
+    // 弾のエントリ
+    bulletEntry.sprite_src_l = 0;
+    gameBackCos = SystemGetCos(gameBackAngle);
+    gameBackSin = SystemGetSin(gameBackAngle);
+    bulletEntry.spx = gameBackCos;
+    bulletEntry.spy = gameBackSin;
+    BulletEntry();
+}
+static void GameShootBack(ENEMY* ix) { // 敵が弾を打ち返す
+    // 敵が自機に近い場合は撃ち返さない
+    if (ship.y-0x20 < ix->yi) {
+        u8 a = ship.x-0x18;
+        if (a < ix->xi && ix->xi <= a+0x30) return;
+    }
+    getvec(ix);
+    b();
 }
