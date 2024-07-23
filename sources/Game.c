@@ -115,13 +115,41 @@ static void getvec(ENEMY* ix) {
     bulletEntry.y = ix->y;
 }
 static void b(void) {
-    // 弾のエントリ
-    bulletEntry.sprite_src_l = 0;
-    gameBackCos = SystemGetCos(gameBackAngle);
-    gameBackSin = SystemGetSin(gameBackAngle);
-    bulletEntry.spx = gameBackCos;
-    bulletEntry.spy = gameBackSin;
-    BulletEntry();
+    static const u8 const backTypeTable[] = {0x00, 0x01, 0x01, 0x00, 0x00}; // 撃ち返しデータ
+    static const u8 const backAngleTable[] = {0x00, 0x0c, 0xf4, 0x18, 0xe8};
+    static const u8 const backSpeedTable[] = {
+        //0x03, 0x00, 0x02, 0x01, 0x02, 0x01, 0x03, 0x00, 0x03, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0x02, 0x01, 0x02, 0x00, 0x02, 0x00, 0x02, 0x01, 0x02, 0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0x02, 0x00, 0x01, 0x01, 0x01, 0x01, 0x02, 0x00, 0x02, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0x01, 0x01, 0x01, 0x00, 0x01, 0x00, 0x01, 0x01, 0x01, 0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0x01, 0x01, 0x01, 0x00, 0x01, 0x00, 0x01, 0x01, 0x01, 0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    };
+    for(u8 b = 5,c = 0;b;c++,--b) {// 弾のエントリ
+        // メインの処理
+        u8* hl = (void*)(backTypeTable+c);
+        bulletEntry.sprite_src_l = *hl;
+        hl = (void*)(backAngleTable+c);
+        u8 a = gameBackAngle + *hl;
+        gameBackCos = SystemGetCos(a);
+        gameBackSin = SystemGetSin(a);
+        bulletEntry.spx = 0;
+        bulletEntry.spy = 0;
+        hl = (void*)(backSpeedTable+c*2);
+        for (u8 d = *hl++;d;d--) {
+            bulletEntry.spx += gameBackCos;
+            bulletEntry.spy += gameBackSin;
+        }
+        u8 e = *hl;
+        if(e) {
+            gameBackCos = gameBackCos>>1;
+            gameBackSin = gameBackSin>>1;
+            for(;e;e--) {
+                bulletEntry.spx += gameBackCos;
+                bulletEntry.spy += gameBackSin;
+            }
+        }
+        BulletEntry();
+    }
 }
 static void GameShootBack(ENEMY* ix) { // 敵が弾を打ち返す
     // 敵が自機に近い場合は撃ち返さない
