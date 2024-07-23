@@ -84,7 +84,7 @@ ASSRCS			=	crt0.s \
 
 # c source files
 CSRCS			=	main.c System.c \
-					App.c Back.c Game.c Ship.c Enemy.c pattern.c bg.c
+					App.c Back.c Game.c Ship.c Shot.c Enemy.c pattern.c bg.c
 
 # object files
 OBJS			=	$(ASSRCS:.s=.rel) $(CSRCS:.c=.rel)

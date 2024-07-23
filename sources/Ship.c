@@ -4,6 +4,7 @@
 #include "App.h"
 #include "Game.h"
 #include "Ship.h"
+#include "Shot.h"
 // 定数の定義
 static const u8 const shipSpriteTable[] = { // 自機データ
     0xf8, 0xf8, 0x00, 0x0f,
@@ -42,6 +43,9 @@ static void ShipPlay(void) { // 自機を操作する
         } else if(input[INPUT_KEY_RIGHT]) {// →が押された
             if (ship.x<0xb8) ship.x+=2;
         }
+        // 発射処理
+        if(input[INPUT_BUTTON_SPACE]==1) // A ボタンが押された
+            ShotEntry();// ショットのエントリ
     }
     // 描画の開始
     SystemSetSprite(

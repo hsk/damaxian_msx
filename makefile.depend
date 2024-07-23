@@ -10,9 +10,11 @@ Back.rel        :   Back.c \
                     bios.h vdp.h System.h App.h Back.h
 
 Game.rel        :   Game.c \
-                    bios.h System.h App.h Back.h Game.h Ship.h
+                    bios.h System.h App.h Back.h Game.h Ship.h Shot.h
 Ship.rel        :   Ship.c \
-                    bios.h System.h App.h Game.h Ship.h
+                    bios.h System.h App.h Game.h Ship.h Shot.h
+Shot.rel        :   Shot.c \
+                    bios.h System.h App.h Game.h Ship.h Shot.h
 Enemy.rel       :   Enemy.c \
                     bios.h System.h App.h Game.h Ship.h Enemy.h
 pattern.rel     :   pattern.c

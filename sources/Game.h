@@ -9,6 +9,7 @@
 #define GAME_SPRITE_ENEMY           0x48
 #define GAME_SPRITE_ENEMY_OFFSET    0x48
 #define GAME_SPRITE_SHIP            0x6c
+#define GAME_SPRITE_SHOT            0x70
 // フラグ
 #define GAME_FLAG_PLAYABLE      0
 #define GAME_FLAG_PAUSE         1
