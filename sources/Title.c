@@ -5,6 +5,7 @@
 #include "App.h"
 #include "Back.h"
 #include "Title.h"
+#include "Sound.h"
 // 定数の定義
 static const u8 const colorAnimationTable[] = { // カラーアニメーションテーブル
     0xf1, 0x41, 0x61, 0xa1
@@ -27,6 +28,10 @@ void TitleUpdate(void) {// タイトルを更新する
 }
 static void TitleInit(void) {// タイトルを初期化する
     SystemClearSprite();// スプライトのクリア
+    soundRequest[0] = mmlNull;// 演奏の停止
+    soundRequest[1] = mmlNull;
+    soundRequest[2] = mmlNull;
+    soundRequest[3] = mmlNull;
     appState = TITLE_STATE_LOAD;// 状態の更新
 }
 static void TitleLoad(void) {// タイトルをロードする
@@ -42,10 +47,13 @@ static void TitleLoop(void) {// タイトルを待機する
     do {
         if (appPhase == 0x01) {// 待機の処理
             if (input[INPUT_BUTTON_SPACE]!=1) break;// SPACE キー
+            soundRequest[0] = mmlTitleStartChannel0;// 演奏の開始
+            soundRequest[1] = mmlTitleStartChannel1;
+            soundRequest[2] = mmlTitleStartChannel2;
             appPhase++;// 状態の更新
         }
         // 待機の完了待ち
-        if(appPhase++!=30)break;
+        if (soundRequest[0]||soundPlay[0]) break;
         // ゲームスタート
         appState = TITLE_STATE_UNLOAD;// 状態の更新
     } while(0);

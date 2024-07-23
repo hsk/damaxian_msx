@@ -9,6 +9,7 @@
 #include "Shot.h"
 #include "Enemy.h"
 #include "Bullet.h"
+#include "Sound.h"
 // 変数の定義
 u8 gameFlag;   // フラグ
 u8 gameShootDown;   // 倒した数
@@ -48,6 +49,11 @@ void GameUpdate(void) { // ゲームを更新する
 static void GameInitialize(void) { // ゲームを初期化する
     // スプライトのクリア
     SystemClearSprite();
+    // 演奏の停止
+    soundRequest[0] = mmlNull;
+    soundRequest[1] = mmlNull;
+    soundRequest[2] = mmlNull;
+    soundRequest[3] = mmlNull;
     // 現在のスコアの初期化
     appScore[0] = 0;
     appScore[1] = 0;
@@ -87,11 +93,16 @@ static void GameLoad(void) { // ゲームをロードする
 static void GameStart(void) { // ゲームを開始する
     if (appPhase == 0) {// 初期化
         BackStoreMessage(BACK_MESSAGE_START);// メッセージのロード
+        // 演奏の開始
+        soundRequest[0] = mmlStartChannel0;
+        soundRequest[1] = mmlStartChannel1;
+        soundRequest[2] = mmlStartChannel2;
         // フラグの設定
         gameFlag &= ~((1<<GAME_FLAG_PLAYABLE)|(1<<GAME_FLAG_PAUSE)|(1<<GAME_FLAG_STATUS));
         appPhase++; // 状態の更新
     }
-    if (appPhase++ != 60*3) return;
+    if (soundRequest[0]||soundPlay[0]) return;
+    // 演奏の終了
     BackRestoreMessage(); // メッセージのアンロード
     appState = GAME_STATE_PLAY; // 状態の更新
     appPhase = APP_PHASE_NULL;
@@ -203,6 +214,7 @@ static void GamePlay(void) { // ゲームをプレイする
         }
         // プレイの処理
         if (input[INPUT_BUTTON_ESC]==0x01) { // START ボタンが押された
+            flag ^= (1 << FLAG_SOUND_SLEEP); // スリープフラグをフリップ
             gameFlag ^= (1 << GAME_FLAG_PAUSE); // ポーズフラグをフリップ
         }
     }
@@ -271,12 +283,16 @@ static void GameOver(void) { // ゲームオーバーになる
 static void GameHiscore(void) { // ハイスコアを更新する
     if (appPhase==0) {// 初期化
         BackStoreMessage(BACK_MESSAGE_HISCORE);// メッセージのロード
+        // 演奏の開始
+        soundRequest[0] = mmlHiScoreChannel0;
+        soundRequest[1] = mmlHiScoreChannel1;
+        soundRequest[2] = mmlHiScoreChannel2;
         // フラグの設定
         gameFlag &= ~((1<<GAME_FLAG_PLAYABLE)|(1<<GAME_FLAG_PAUSE)|(1<<GAME_FLAG_STATUS));
         appPhase++;// 状態の更新
     }
     // ハイスコアの処理
-    if (appPhase++ == 60*3) {
+    if ((soundRequest[0]||soundPlay[0])==0) {// 演奏の終了
         BackRestoreMessage();// メッセージのアンロード
         appState = GAME_STATE_UNLOAD;// 状態の更新
         appPhase = APP_PHASE_NULL;

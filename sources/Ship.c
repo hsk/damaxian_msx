@@ -5,6 +5,7 @@
 #include "Game.h"
 #include "Ship.h"
 #include "Shot.h"
+#include "Sound.h"
 // 定数の定義
 static const u8 const shipSpriteTable[] = { // 自機データ
     0xf8, 0xf8, 0x00, 0x0f,
@@ -73,6 +74,7 @@ static void ShipBomb(void) { // 自機が爆発する
     if(ship.phase==0) {//初期化
         ship.nodamage = 0x80;// ノーダメージの設定
         ship.animation = 0;// アニメーションの設定
+        soundRequest[0] = mmlBombChannel0; // 演奏の開始
         ship.phase++;// 状態の更新
     }
     // 爆発の処理

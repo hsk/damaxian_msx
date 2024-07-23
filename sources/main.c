@@ -2,12 +2,14 @@
 #include "bios.h"
 #include "System.h"
 #include "App.h"
+#include "Sound.h"
 // 変数定義
 static u8 h_timiRoutine[5];     // タイマ割り込み
 static void H_timiEntry(void);
 void main(void) {// メインプログラム
     // 初期化
     SystemInitialize();// システムの初期化
+    SystemInitializeSound();// サウンドの初期化
     AppInitialize();// アプリケーションの初期化
     DI();// 割り込みの禁止
     // タイマ割り込み処理の保存
@@ -32,6 +34,7 @@ static void H_timiEntry(void) {// タイマ割り込みのエントリ
         if (request & (1 << REQUEST_VRAM)) SystemTransferVram(); // VRAM の転送
         SystemTransferSprite(); // スプライトの転送
         SystemUpdateInput();// キー入力の更新
+        SystemUpdateSound();// サウンドの更新
         if (input[INPUT_BUTTON_STOP]==1) flag |= (1 << FLAG_CANCEL);// STOP キーによるキャンセル
         // 処理の完了
         AppUpdate(); // アプリケーションの更新

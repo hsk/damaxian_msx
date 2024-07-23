@@ -5,7 +5,7 @@
 #include "Game.h"
 #include "Ship.h"
 #include "Shot.h"
-
+#include "Sound.h"
 // 定数の定義
 static const u8 const shotSpriteTable[] = { // ショットデータ
     0xfc, 0xf8, 0x08, 0x0f
@@ -41,6 +41,7 @@ static void ShotMove(SHOT* ix) { // ショットが移動する
     if (ix->phase == 0) {// 初期化
         ix->x = ship.x;// 位置の初期化
         ix->y = ship.y;
+        soundRequest[0] = mmlShotChannel0;// 演奏の開始
         ix->phase++;// 状態の更新
     }
     u8 a = ix->y = ix->y-4;// 移動

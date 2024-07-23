@@ -4,6 +4,8 @@ main.rel        :   main.c \
                     bios.h System.h App.h
 System.rel      :   System.c \
                     bios.h vdp.h System.h
+Sound.rel       :   Sound.c \
+                    bios.h Sound.h
 Math.rel        :   Math.c \
                     bios.h Math.h
 App.rel         :   App.c \
