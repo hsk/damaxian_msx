@@ -15,13 +15,16 @@ SHIP ship; // パラメータ
 void ShipInitialize(void) { // 自機を初期化する
     ship.state = SHIP_STATE_PLAY; // 状態の設定
     ship.phase = 0;
+    ship.nodamage = 0x80;// ノーダメージの設定
 }
 static void ShipNull(void);
 static void ShipPlay(void);
+static void ShipBomb(void);
 void ShipUpdate(void) { // 自機を更新する
     u8 a = ship.state;
     if      (a == SHIP_STATE_NULL) ShipNull(); // 自機はなし
     else if (a == SHIP_STATE_PLAY) ShipPlay(); // 操作
+    else                           ShipBomb(); // 爆発
 }
 static void ShipNull(void) { // 自機はなし
     sprite[GAME_SPRITE_SHIP+0x00] = 0xc0;// 描画の開始
@@ -35,6 +38,7 @@ static void ShipPlay(void) { // 自機を操作する
         ship.y = 0xb1;
         ship.phase++;// 状態の更新
     }// 待機処理
+    if (ship.nodamage)ship.nodamage--;
     // 自機を定位置に移動
     if (gameFlag&(1<<GAME_FLAG_PLAYABLE)) {// 操作可能かどうか
         // Ｘ方向の移動
@@ -49,6 +53,31 @@ static void ShipPlay(void) { // 自機を操作する
     }
     // 描画の開始
     SystemSetSprite(
-        &shipSpriteTable[0],
+        &shipSpriteTable[(ship.nodamage & 0b00000010)<<1],
+        &sprite[GAME_SPRITE_SHIP], ship.y,ship.x);
+
+}
+static void ShipBomb(void) { // 自機が爆発する
+    static const u8 const bombSpriteTable[] = { // 爆発データ
+        0xf8, 0xf8, 0x10, 0x06,
+        0xf8, 0xf8, 0x14, 0x0a,
+        0xf8, 0xf8, 0x18, 0x06,
+        0xf8, 0xf8, 0x1c, 0x0f,
+    };
+    if(ship.phase==0) {//初期化
+        ship.nodamage = 0x80;// ノーダメージの設定
+        ship.animation = 0;// アニメーションの設定
+        ship.phase++;// 状態の更新
+    }
+    // 爆発の処理
+    // アニメーションの更新
+    ship.animation++;
+    if (ship.animation==0x1f) {
+        ship.state = SHIP_STATE_PLAY; // 状態の更新
+        ship.phase = 0;
+    }
+    // 描画の開始
+    SystemSetSprite(
+        &bombSpriteTable[(ship.animation & 0b00011000) >> 1],
         &sprite[GAME_SPRITE_SHIP], ship.y,ship.x);
 }

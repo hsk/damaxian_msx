@@ -60,6 +60,8 @@ static void GameStart(void) { // ゲームを開始する
     appPhase = APP_PHASE_NULL;
 }
 static void GameCheckShotEnemy(void);
+static void GameCheckShipBullet(void);
+static void GameCheckShipEnemy(void);
 static void GamePlay(void) { // ゲームをプレイする
     {
         if (appPhase == 0) {// 初期化
@@ -75,6 +77,8 @@ static void GamePlay(void) { // ゲームをプレイする
     }
     if (gameFlag & (1<<GAME_FLAG_PAUSE)) return; // 一時停止
     GameCheckShotEnemy();
+    GameCheckShipBullet(); // 自機と弾のヒットチェック
+    GameCheckShipEnemy();  // 自機と敵のヒットチェック
 }
 static void GameShootBack(ENEMY* ix);
 static void GameCheckShotEnemy(void) { // ショットと敵のヒットチェックを行う
@@ -98,6 +102,45 @@ static void GameCheckShotEnemy(void) { // ショットと敵のヒットチェ�
         }
     }
 }
+static void GameCheckShipBullet(void) { // 自機と弾のヒットチェックを行う
+    if (ship.nodamage) return;// 自機の存在
+    BULLET* ix = bullets;
+    for (u8 b = BULLET_SIZE; b; ix++, b--) {// 弾の走査
+        if (ix->state == BULLET_STATE_NULL) continue;// 弾の存在
+        // ヒットチェック
+        i16 a = (i8)ix->xi - (i8)ship.x;
+        if (a < 0) a = -a;
+        if (a >= 6) continue;
+        a = (i8)ix->yi - (i8)ship.y;
+        if (a < 0) a = -a;
+        if (a >= 6) continue;
+        ix->state = BULLET_STATE_NULL; // 弾の状態の更新
+        ship.state = SHIP_STATE_BOMB;// 自機の状態の更新
+        ship.phase = APP_PHASE_NULL;
+    }
+}
+static void GameCheckShipEnemy(void) { // 自機と敵のヒットチェックを行う
+    if (ship.nodamage)return;// 自機の存在
+    ENEMY* ix = enemies;
+    for (u8 b = ENEMIES_SIZE; b; ix++,--b) {// 敵の走査
+        if (ix->nodamage) continue;// 敵の存在
+        // ヒットチェック X
+        i16 a = ix->xi-ship.x;
+        if (a < 0) a = -a;
+        if (a >= 8) continue;
+        // ヒットチェック Y
+        a = ix->yi-ship.y;
+        if (a < 0) a = -a;
+        if (a >= 8) continue;
+        // 更新
+        ix->nodamage = 0x80; // 敵のノーダメージの更新
+        ix->state = ENEMY_STATE_BOMB;// 敵の状態の更新
+        ix->phase = APP_PHASE_NULL;
+        ship.state = SHIP_STATE_BOMB;// 自機の状態の更新
+        ship.phase = APP_PHASE_NULL;
+    }
+}
+
 static void getvec(ENEMY* ix) {
     // ベクトルの取得
     i8 x = ship.x - ix->xi;
