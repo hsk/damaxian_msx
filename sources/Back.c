@@ -35,16 +35,20 @@ static const u8 const colorAnimationTable[] = {
     0x01, 0x01, 0x51, 0x51, 0x91, 0x91, 0xb1, 0xb1,
 };
 // 変数の定義
+static u8 scorePatternNameTable[6];     // 現在のスコア
 static u8 timerPatternNameTable[4];     // タイマ
 static u8 count;                        // カウント
 
 static void BackLoadPatternNameTable(void);
 static void BackLoadColorTable(void);
+static void BackMakeScorePatternNameTable(void);
 static void BackMakeTimerPatternNameTable(void);
 
 void BackLoad(void) { // 背景をロードする
     BackLoadPatternNameTable();// パターンネームテーブルのロード
     BackLoadColorTable();// カラーテーブルのロード
+    BackMakeScorePatternNameTable();// 現在のスコアの作成
+    LoadVram(VIDEO_GRAPHIC1_PATTERN_NAME_TABLE+BACK_PATTERN_NAME_TABLE_SCORE, scorePatternNameTable, 6);// 現在のスコアの転送
     BackMakeTimerPatternNameTable();// タイマの作成
     LoadVram(VIDEO_GRAPHIC1_PATTERN_NAME_TABLE+BACK_PATTERN_NAME_TABLE_TIMER, timerPatternNameTable, 4);// タイマの転送
     count = 0x01;// カウントの初期化
@@ -61,6 +65,11 @@ void BackUpdate(void) { // 背景を更新する
     request |= (1 << REQUEST_VRAM);// V-Blank 中の転送の開始
 }
 void BackTransferStatus(void) { // ステータスを転送する
+    BackMakeScorePatternNameTable();// 現在のスコアの作成
+    // 現在のスコアの転送の設定
+    videoTransfer.vram0_src = (i16)scorePatternNameTable;// 転送元アドレス設定
+    videoTransfer.vram0_dst = VIDEO_GRAPHIC1_PATTERN_NAME_TABLE+BACK_PATTERN_NAME_TABLE_SCORE;// 転送先アドレス設定
+    videoTransfer.vram0_bytes = 0x06;// 転送バイト数設定
     BackMakeTimerPatternNameTable();// タイマの作成
     // タイマの転送の設定
     videoTransfer.vram2_src = (i16)timerPatternNameTable;// 転送元アドレス設定
@@ -112,6 +121,21 @@ void BackRestoreMessage(void) { // メッセージの背景を復旧する
 }
 static void BackLoadPatternNameTable(void) { // パターンネームテーブルを読み込む
     LoadVram(VIDEO_GRAPHIC1_PATTERN_NAME_TABLE,bg,0x300);
+}
+// 現在のスコアのパターンネームテーブルを作成する
+static void BackMakeScorePatternNameTable(void) {
+    // 最初の5文字転送
+    u8* hl = appScore;
+    u8* de = scorePatternNameTable;
+    u8 b = 5, c = 0;
+    do { // b ループ
+        u8 a = *hl++;
+        if (a) c = 0x10;
+        a += c;
+        *de++ = a;
+    } while(--b);
+    // 6文字目は必ず0x10を加えて転送
+    *de = *hl + 0x10;
 }
 // タイマのパターンネームテーブルを作成する
 static void BackMakeTimerPatternNameTable(void) {

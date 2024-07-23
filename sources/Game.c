@@ -11,6 +11,7 @@
 #include "Bullet.h"
 // 変数の定義
 u8 gameFlag;   // フラグ
+u8 gameShootDown;   // 倒した数
 static u8 gameCount;   // カウント
 static u8 gameBackAngle;   // 撃ち返し
 static i16 gameBackCos;
@@ -45,6 +46,13 @@ void GameUpdate(void) { // ゲームを更新する
 static void GameInitialize(void) { // ゲームを初期化する
     // スプライトのクリア
     SystemClearSprite();
+    // 現在のスコアの初期化
+    appScore[0] = 0;
+    appScore[1] = 0;
+    appScore[2] = 0;
+    appScore[3] = 0;
+    appScore[4] = 0;
+    appScore[5] = 0;
     // タイマの初期化
     appTimer[0] = 0x03;
     appTimer[1] = 0;
@@ -55,6 +63,7 @@ static void GameInitialize(void) { // ゲームを初期化する
     EnemyInitialize();  // 敵の初期化
     BulletInitialize(); // 弾の初期化
     gameFlag = 0; // フラグの初期化
+    gameShootDown = 0; // 倒した数の初期化
     // 状態の更新
     appState = GAME_STATE_LOAD;
     appPhase = APP_PHASE_NULL;
@@ -103,10 +112,47 @@ static void GamePlay2(void) {
             }
         }
     }
-    // 倒した数の設定
+    gameShootDown = 0; // 倒した数の設定
     GameCheckShotEnemy();  // ショットと敵のヒットチェック
     GameCheckShipBullet(); // 自機と弾のヒットチェック
     GameCheckShipEnemy();  // 自機と敵のヒットチェック
+}
+static void GamePlay3(void) {
+    // スコアの更新
+    if (gameShootDown) {
+        u8 b = gameShootDown;
+        do {
+            appScore[5]++;
+            if (appScore[5]>=0x0a) {
+                appScore[5] -= 0x0a;
+                appScore[4]++;
+                if (appScore[4] >= 0x0a) {
+                    appScore[4] -= 0x0a;
+                    appScore[3]++;
+                    if (appScore[3]>=0x0a) {
+                        appScore[3]-=0x0a;
+                        appScore[2]++;
+                        if (appScore[2]>=0x0a) {
+                            appScore[2] -= 0x0a;
+                            appScore[1]++;
+                            if (appScore[1]>=0x0a) {
+                                appScore[1] -= 0x0a;
+                                appScore[0]++;
+                                if (appScore[0]>=0x0a) {
+                                    appScore[0] = 9;
+                                    appScore[1] = 9;
+                                    appScore[2] = 9;
+                                    appScore[3] = 9;
+                                    appScore[4] = 9;
+                                    appScore[5] = 9;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } while(--b);
+    }
 }
 static void GamePlay(void) { // ゲームをプレイする
     {
@@ -123,6 +169,7 @@ static void GamePlay(void) { // ゲームをプレイする
     }
     if (gameFlag & (1<<GAME_FLAG_PAUSE)) return; // 一時停止
     GamePlay2();
+    GamePlay3();
     {
         // タイムアップ
         if (appTimer[0]|appTimer[1]|appTimer[2]|appTimer[3]) return;
@@ -190,6 +237,7 @@ static void GameCheckShotEnemy(void) { // ショットと敵のヒットチェ�
             a = ix->yi-iy->y;
             if (!((i8)0xf6 <= a && a < 0x0b)) continue;
             // あたり
+            gameShootDown++; // 倒した数の更新
             ix->nodamage = 0x80;// 敵のノーダメージの更新
             ix->state = ENEMY_STATE_BOMB;// 敵の状態の更新
             ix->phase = APP_PHASE_NULL;
@@ -229,6 +277,7 @@ static void GameCheckShipEnemy(void) { // 自機と敵のヒットチェック�
         if (a < 0) a = -a;
         if (a >= 8) continue;
         // 更新
+        gameShootDown++; // 倒した数の更新
         ix->nodamage = 0x80; // 敵のノーダメージの更新
         ix->state = ENEMY_STATE_BOMB;// 敵の状態の更新
         ix->phase = APP_PHASE_NULL;

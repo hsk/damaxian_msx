@@ -24,3 +24,4 @@
 void GameUpdate(void);
 // 外部変数宣言
 extern u8 gameFlag;
+extern u8 gameShootDown;
