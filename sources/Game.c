@@ -53,6 +53,11 @@ static void GameInitialize(void) { // ゲームを初期化する
     appScore[3] = 0;
     appScore[4] = 0;
     appScore[5] = 0;
+    // スコアの倍率の初期化
+    appRate[0] = 0;
+    appRate[1] = 1;
+    appRate[2] = 0;
+    appRate[3] = 0;
     // タイマの初期化
     appTimer[0] = 0x03;
     appTimer[1] = 0;
@@ -116,37 +121,69 @@ static void GamePlay2(void) {
     GameCheckShotEnemy();  // ショットと敵のヒットチェック
     GameCheckShipBullet(); // 自機と弾のヒットチェック
     GameCheckShipEnemy();  // 自機と敵のヒットチェック
+
+    // スコアの倍率の更新
+    u8 a = gameShootDown;
+    if (a) {
+        a += appRate[1];
+        appRate[1] = a;
+        if (a >= 0x0a) {
+            appRate[1] = a - 0x0a;
+            appRate[0]++;
+            if (appRate[0] >= 0x0a) {
+                appRate[0] = 9;
+                appRate[1] = 9;
+                appRate[2] = 9;
+            }
+        }
+    } else if ((appRate[0]|appRate[2]|appRate[3]) || appRate[1]!=1) {
+        appRate[3]--;
+        if (appRate[3]==255) {
+            appRate[3]=1;
+            appRate[2]--;
+            if (appRate[2]==255) {
+                appRate[2]=9;
+                appRate[1]--;
+                if (appRate[1]==255) {
+                    appRate[1]=9;
+                    appRate[0]--;
+                }
+            }
+        }
+    }
 }
 static void GamePlay3(void) {
     // スコアの更新
     if (gameShootDown) {
         u8 b = gameShootDown;
         do {
-            appScore[5]++;
+            appScore[5] += appRate[2];
             if (appScore[5]>=0x0a) {
                 appScore[5] -= 0x0a;
                 appScore[4]++;
-                if (appScore[4] >= 0x0a) {
-                    appScore[4] -= 0x0a;
-                    appScore[3]++;
-                    if (appScore[3]>=0x0a) {
-                        appScore[3]-=0x0a;
-                        appScore[2]++;
-                        if (appScore[2]>=0x0a) {
-                            appScore[2] -= 0x0a;
-                            appScore[1]++;
-                            if (appScore[1]>=0x0a) {
-                                appScore[1] -= 0x0a;
-                                appScore[0]++;
-                                if (appScore[0]>=0x0a) {
-                                    appScore[0] = 9;
-                                    appScore[1] = 9;
-                                    appScore[2] = 9;
-                                    appScore[3] = 9;
-                                    appScore[4] = 9;
-                                    appScore[5] = 9;
-                                }
-                            }
+            }
+            appScore[4] += appRate[1];
+            if (appScore[4] >= 0x0a) {
+                appScore[4] -= 0x0a;
+                appScore[3]++;
+            }
+            appScore[3] += appRate[0];
+            if (appScore[3]>=0x0a) {
+                appScore[3]-=0x0a;
+                appScore[2]++;
+                if (appScore[2]>=0x0a) {
+                    appScore[2] -= 0x0a;
+                    appScore[1]++;
+                    if (appScore[1]>=0x0a) {
+                        appScore[1] -= 0x0a;
+                        appScore[0]++;
+                        if (appScore[0]>=0x0a) {
+                            appScore[0] = 9;
+                            appScore[1] = 9;
+                            appScore[2] = 9;
+                            appScore[3] = 9;
+                            appScore[4] = 9;
+                            appScore[5] = 9;
                         }
                     }
                 }

@@ -36,12 +36,14 @@ static const u8 const colorAnimationTable[] = {
 };
 // 変数の定義
 static u8 scorePatternNameTable[6];     // 現在のスコア
+static u8 ratePatternNameTable[4];      // スコアの倍率
 static u8 timerPatternNameTable[4];     // タイマ
 static u8 count;                        // カウント
 
 static void BackLoadPatternNameTable(void);
 static void BackLoadColorTable(void);
 static void BackMakeScorePatternNameTable(void);
+static void BackMakeRatePatternNameTable(void);
 static void BackMakeTimerPatternNameTable(void);
 
 void BackLoad(void) { // 背景をロードする
@@ -49,6 +51,8 @@ void BackLoad(void) { // 背景をロードする
     BackLoadColorTable();// カラーテーブルのロード
     BackMakeScorePatternNameTable();// 現在のスコアの作成
     LoadVram(VIDEO_GRAPHIC1_PATTERN_NAME_TABLE+BACK_PATTERN_NAME_TABLE_SCORE, scorePatternNameTable, 6);// 現在のスコアの転送
+    BackMakeRatePatternNameTable();// スコアの倍率の作成
+    LoadVram(VIDEO_GRAPHIC1_PATTERN_NAME_TABLE+BACK_PATTERN_NAME_TABLE_RATE, ratePatternNameTable, 4);// スコアの倍率の転送
     BackMakeTimerPatternNameTable();// タイマの作成
     LoadVram(VIDEO_GRAPHIC1_PATTERN_NAME_TABLE+BACK_PATTERN_NAME_TABLE_TIMER, timerPatternNameTable, 4);// タイマの転送
     count = 0x01;// カウントの初期化
@@ -70,6 +74,11 @@ void BackTransferStatus(void) { // ステータスを転送する
     videoTransfer.vram0_src = (i16)scorePatternNameTable;// 転送元アドレス設定
     videoTransfer.vram0_dst = VIDEO_GRAPHIC1_PATTERN_NAME_TABLE+BACK_PATTERN_NAME_TABLE_SCORE;// 転送先アドレス設定
     videoTransfer.vram0_bytes = 0x06;// 転送バイト数設定
+    BackMakeRatePatternNameTable();// スコアの倍率の作成
+    // スコアの倍率の転送の設定
+    videoTransfer.vram1_src = (i16)ratePatternNameTable;// 転送元アドレス設定
+    videoTransfer.vram1_dst = VIDEO_GRAPHIC1_PATTERN_NAME_TABLE+BACK_PATTERN_NAME_TABLE_RATE;// 転送先アドレス設定
+    videoTransfer.vram1_bytes = 0x04;// 転送バイト数設定
     BackMakeTimerPatternNameTable();// タイマの作成
     // タイマの転送の設定
     videoTransfer.vram2_src = (i16)timerPatternNameTable;// 転送元アドレス設定
@@ -136,6 +145,24 @@ static void BackMakeScorePatternNameTable(void) {
     } while(--b);
     // 6文字目は必ず0x10を加えて転送
     *de = *hl + 0x10;
+}
+// スコアの倍率のパターンネームテーブルを作成する
+static void BackMakeRatePatternNameTable(void) {
+    // 転送元と転送先、加える値を設定
+    u8* hl = appRate;
+    u8* de = ratePatternNameTable;
+    u8 c = 0x10;
+    // 1文字目転送
+    // 1文字読み込み
+    u8 a = *hl++;
+    if (a) a += c; // 0以外のときはcを加える
+    *de++ = a;// 転送
+    // 2文字目転送
+    *de++ = *hl++ + c; // 2文字目読み込み
+    // 3文字目転送
+    *de++ = 0x0e;  // 3文字目は固定
+    // 4文字目転送
+    *de = *hl + c; // 3文字目読み込み
 }
 // タイマのパターンネームテーブルを作成する
 static void BackMakeTimerPatternNameTable(void) {

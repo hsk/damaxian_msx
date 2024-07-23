@@ -15,6 +15,7 @@ u8 appMode;         // モード
 u8 appState;        // 状態
 u8 appPhase;
 u8 appScore[6];     // 現在のスコア
+u8 appRate[4];      // スコアの倍率
 u8 appTimer[4];     // タイマ
 
 void AppInitialize(void) __naked { // アプリケーションを初期化する
@@ -29,6 +30,9 @@ void AppInitialize(void) __naked { // アプリケーションを初期化する
     // アプリケーションの初期化
         // 現在のスコアの初期化
         for(u8 i=0;i<6;i++) appScore[i]=0;
+        // スコアの倍率の初期化
+        for(u8 i=0;i<4;i++) appRate[i]=0;
+        appRate[1]=1;
         // タイマの初期化
         for(u8 i=0;i<4;i++) appTimer[i]=0;
     appMode = APP_MODE_LOAD;// モードの初期化
