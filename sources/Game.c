@@ -4,6 +4,7 @@
 #include "Math.h"
 #include "App.h"
 #include "Game.h"
+#include "Back.h"
 #include "Ship.h"
 #include "Shot.h"
 #include "Enemy.h"
@@ -24,6 +25,7 @@ void GameUpdate(void) { // ゲームを更新する
     else if (appState == GAME_STATE_PLAY)    GamePlay();      // プレイ
     // 一時停止
     if (gameFlag & (1 << GAME_FLAG_PAUSE)) return;
+    BackUpdate();   // 背景の更新
     ShipUpdate();   // 自機の更新
     ShotUpdate();   // ショットの更新
     EnemyUpdate();  // 敵の更新

@@ -7,6 +7,7 @@
 #include "Back.h"
 #include "Game.h"
 // 外部変数宣言
+extern const u8 const pattern[];
 extern const u8 const spritePattern[];
 // 変数の定義
 u8 appMode;         // モード
@@ -17,6 +18,8 @@ void AppInitialize(void) __naked { // アプリケーションを初期化する
     // スクリーンモードの設定
     SystemSetScreenMode(VIDEO_GRAPHIC1);
     DI();// 割り込みの禁止
+    // パターンジェネレータの転送
+    LoadVram(VIDEO_GRAPHIC1_PATTERN_GENERATOR_TABLE,pattern,0x800);
     // スプライトジェネレータの転送
     LoadVram(VIDEO_GRAPHIC1_SPRITE_GENERATOR_TABLE,spritePattern,0x800);
     EI();// 割り込み禁止の解除
