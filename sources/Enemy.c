@@ -1,6 +1,7 @@
 // Enemy.c : ゲーム画面／敵
 #include "bios.h"
 #include "System.h"
+#include "Math.h"
 #include "App.h"
 #include "Game.h"
 #include "Ship.h"
@@ -83,6 +84,8 @@ void EnemyInitialize(void) { // 敵を初期化する
 static void EnemyNull(ENEMY* ix);
 static void EnemyIn(ENEMY* ix);
 static void EnemyStay(ENEMY* ix);
+static void EnemyTurn(ENEMY* ix);
+static void EnemyApproach(ENEMY* ix);
 static void EnemyBomb(ENEMY* ix);
 static void EnemyDraw(ENEMY* ix);
 void EnemyUpdate(void) { // 敵を更新する
@@ -92,6 +95,8 @@ void EnemyUpdate(void) { // 敵を更新する
         if      (a == ENEMY_STATE_NULL)     EnemyNull(ix);     // なし
         else if (a == ENEMY_STATE_IN)       EnemyIn(ix);       // イン
         else if (a == ENEMY_STATE_STAY)     EnemyStay(ix);     // 待機
+        else if (a == ENEMY_STATE_TURN)     EnemyTurn(ix);     // ターン
+        else if (a == ENEMY_STATE_APPROACH) EnemyApproach(ix); // アプローチ
         else                                EnemyBomb(ix);     // 爆発
     }
     // スプライトオフセットの更新
@@ -138,6 +143,61 @@ static void EnemyIn(ENEMY* ix) { // 敵がインする
     EnemyDraw(ix); // 敵の描画
 }
 static void EnemyStay(ENEMY* ix) { // 敵が待機する
+    if (ix->phase==0) {
+        // カウントの設定
+        u8* hl = (void*)&enemyStayTable[0];
+        u8 a = SystemGetRandom() & (*hl++);
+        a += *hl;
+        ix->count0 = a;
+        ix->count1 = 0x40;
+        ix->phase++;// 状態の更新
+    } // 待機の処理
+    if (gameFlag & (1<<GAME_FLAG_PLAYABLE)) {// 操作可能かどうか
+        if(ix->count0)      ix->count0--;// カウント0更新
+        else if(ix->count1) ix->count1--;// カウント1更新
+        else {
+            ix->state = ENEMY_STATE_TURN;// 状態の設定
+            ix->phase = 0;
+        }
+    }
+    EnemyDraw(ix);// 敵の描画
+}
+static void EnemyTurn(ENEMY* ix) { // 敵がターンする
+    if (ix->phase == 0) {
+        ix->turn = 0x02;// 回転の設定
+        if ((SystemGetRandom()&0b00010000) == 0) ix->turn = 0xfe;
+        ix->phase++;// 状態の更新
+    }
+    ix->angle += ix->turn;// 方向の更新
+    if (ix->angle==0x40) ix->state = ENEMY_STATE_APPROACH;// 状態の更新
+    // 位置の更新
+    i16 hl = SystemGetCos(ix->angle);
+    ix->x += hl + (hl>>1);// X 方向は x1.5 の移動
+    ix->y += (SystemGetSin(ix->angle)<<1);// Y 方向は x2.0 の移動
+    EnemyDraw(ix);
+}
+static void EnemyApproach(ENEMY* ix) { // 敵がアプローチする
+    {
+        // 方向の更新
+        u8 a = ix->xi;
+        u8 b = ship.x;
+        if (a >= 0xe0) a = 0xfe;
+        else if (a == b) a = 0;
+        else if (a < b) a = 0xfe;
+        else a = 0x02;
+        a += ix->angle;
+        if (a < 0x22) a = 0x22;
+        else if (a > 0x5e) a = 0x5e;
+        ix->angle = a;
+    }
+    {
+        ix->x += (SystemGetCos(ix->angle) << 1);// 位置の更新
+        ix->y += (SystemGetSin(ix->angle) << 1);
+    }
+    if (ix->yi >= 0xc8) {
+        ix->state = ENEMY_STATE_IN;
+        ix->phase = 0;
+    }
     EnemyDraw(ix);// 敵の描画
 }
 static void EnemyBomb(ENEMY* ix) { // 敵が爆発する

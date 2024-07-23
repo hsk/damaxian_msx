@@ -2,6 +2,7 @@
 #include "bios.h"
 #include "vdp.h"
 #include "System.h"
+#include "Math.h"
 #include "App.h"
 #include "Back.h"
 #include "Game.h"
@@ -33,4 +34,5 @@ static void AppLoad(void) { // アプリケーションを読み込む
 void AppUpdate(void) { // アプリケーションを更新する
     if (appMode == APP_MODE_LOAD) AppLoad();          // 読み込み
     else if (appMode == APP_MODE_GAME) GameUpdate();  // ゲーム画面
+    SystemGetRandom();
 }

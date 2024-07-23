@@ -83,7 +83,7 @@ TARGET			=	DAMAXIAN
 ASSRCS			=	crt0.s \
 
 # c source files
-CSRCS			=	main.c System.c \
+CSRCS			=	main.c System.c Math.c \
 					App.c Back.c Game.c Ship.c Shot.c Enemy.c pattern.c bg.c
 
 # object files
