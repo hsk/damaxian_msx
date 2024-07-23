@@ -14,6 +14,7 @@ extern const u8 const spritePattern[];
 u8 appMode;         // モード
 u8 appState;        // 状態
 u8 appPhase;
+u8 appHiscore[6];   // ハイスコア
 u8 appScore[6];     // 現在のスコア
 u8 appRate[4];      // スコアの倍率
 u8 appTimer[4];     // タイマ
@@ -28,6 +29,9 @@ void AppInitialize(void) __naked { // アプリケーションを初期化する
     LoadVram(VIDEO_GRAPHIC1_SPRITE_GENERATOR_TABLE,spritePattern,0x800);
     EI();// 割り込み禁止の解除
     // アプリケーションの初期化
+        // ハイスコアの初期化
+        for(u8 i=0;i<6;i++) appHiscore[i]=0;
+        appHiscore[2]=5;
         // 現在のスコアの初期化
         for(u8 i=0;i<6;i++) appScore[i]=0;
         // スコアの倍率の初期化

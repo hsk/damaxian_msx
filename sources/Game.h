@@ -7,8 +7,9 @@
 #define GAME_STATE_PLAY         3
 #define GAME_STATE_TIMEUP       4
 #define GAME_STATE_OVER         5
-#define GAME_STATE_UNLOAD       6
-#define GAME_STATE_END          7
+#define GAME_STATE_HISCORE      6
+#define GAME_STATE_UNLOAD       7
+#define GAME_STATE_END          8
 // スプライト
 #define GAME_SPRITE_BULLET          0x00
 #define GAME_SPRITE_BULLET_OFFSET   0x24

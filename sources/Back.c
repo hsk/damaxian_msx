@@ -35,6 +35,7 @@ static const u8 const colorAnimationTable[] = {
     0x01, 0x01, 0x51, 0x51, 0x91, 0x91, 0xb1, 0xb1,
 };
 // 変数の定義
+static u8 hiscorePatternNameTable[6];   // ハイスコア
 static u8 scorePatternNameTable[6];     // 現在のスコア
 static u8 ratePatternNameTable[4];      // スコアの倍率
 static u8 timerPatternNameTable[4];     // タイマ
@@ -42,6 +43,7 @@ static u8 count;                        // カウント
 
 static void BackLoadPatternNameTable(void);
 static void BackLoadColorTable(void);
+static void BackMakeHiscorePatternNameTable(void);
 static void BackMakeScorePatternNameTable(void);
 static void BackMakeRatePatternNameTable(void);
 static void BackMakeTimerPatternNameTable(void);
@@ -49,6 +51,8 @@ static void BackMakeTimerPatternNameTable(void);
 void BackLoad(void) { // 背景をロードする
     BackLoadPatternNameTable();// パターンネームテーブルのロード
     BackLoadColorTable();// カラーテーブルのロード
+    BackMakeHiscorePatternNameTable();// ハイスコアの作成
+    LoadVram(VIDEO_GRAPHIC1_PATTERN_NAME_TABLE+BACK_PATTERN_NAME_TABLE_HISCORE, hiscorePatternNameTable, 6);// ハイスコアの転送
     BackMakeScorePatternNameTable();// 現在のスコアの作成
     LoadVram(VIDEO_GRAPHIC1_PATTERN_NAME_TABLE+BACK_PATTERN_NAME_TABLE_SCORE, scorePatternNameTable, 6);// 現在のスコアの転送
     BackMakeRatePatternNameTable();// スコアの倍率の作成
@@ -66,6 +70,14 @@ void BackUpdate(void) { // 背景を更新する
     videoTransfer.vram3_src = (i16)&colorAnimationTable[e];// 転送元アドレス設定
     videoTransfer.vram3_dst = VIDEO_GRAPHIC1_COLOR_TABLE+0x10;// 転送先アドレス設定
     videoTransfer.vram3_bytes = 0x08;// 転送バイト数設定
+    request |= (1 << REQUEST_VRAM);// V-Blank 中の転送の開始
+}
+void BackTransferHiscore(void) { // ハイスコアを転送する
+    BackMakeHiscorePatternNameTable();// ハイスコアの作成
+    // ハイスコアの転送の設定
+    videoTransfer.vram0_src = (i16)hiscorePatternNameTable;// 転送元アドレス設定
+    videoTransfer.vram0_dst = VIDEO_GRAPHIC1_PATTERN_NAME_TABLE+BACK_PATTERN_NAME_TABLE_HISCORE;// 転送先アドレス設定
+    videoTransfer.vram0_bytes = 0x06;// 転送バイト数設定
     request |= (1 << REQUEST_VRAM);// V-Blank 中の転送の開始
 }
 void BackTransferStatus(void) { // ステータスを転送する
@@ -130,6 +142,20 @@ void BackRestoreMessage(void) { // メッセージの背景を復旧する
 }
 static void BackLoadPatternNameTable(void) { // パターンネームテーブルを読み込む
     LoadVram(VIDEO_GRAPHIC1_PATTERN_NAME_TABLE,bg,0x300);
+}
+static void BackMakeHiscorePatternNameTable(void) { // ハイスコアのパターンネームテーブルを作成する
+    // 最初の５文字転送
+    u8* hl = appHiscore;
+    u8* de = hiscorePatternNameTable;
+    u8 b = 5, c = 0; // 5回ループ、cは0クリア
+    do { // b ループ
+        u8 a = *hl++;
+        if (a) c = 0x10;// 0以外になったら0x10を加えるようにする。
+        a += c;
+        *de++ = a;
+    } while(--b);
+    // 最後の１文字は必ず0x10を加えて転送
+    *de = *hl + 0x10;
 }
 // 現在のスコアのパターンネームテーブルを作成する
 static void BackMakeScorePatternNameTable(void) {
