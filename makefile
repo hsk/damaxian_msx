@@ -84,7 +84,7 @@ ASSRCS			=	crt0.s \
 
 # c source files
 CSRCS			=	main.c System.c \
-					App.c Back.c Game.c Ship.c pattern.c
+					App.c Back.c Game.c Ship.c Enemy.c pattern.c bg.c
 
 # object files
 OBJS			=	$(ASSRCS:.s=.rel) $(CSRCS:.c=.rel)
@@ -126,6 +126,7 @@ depend:
 #
 resource:
 	cd resources/chr; python pattern.py > ../../sources/pattern.c
+	cd resources/bg; python bg.py > ../../sources/bg.c
 
 
 # phony targets
