@@ -68,6 +68,26 @@ void BackTransferStatus(void) { // ステータスを転送する
     videoTransfer.vram2_bytes = 0x04;// 転送バイト数設定
     request |= (1 << REQUEST_VRAM);// V-Blank 中の転送の開始
 }
+void BackStoreLogo(void) { // ロゴを配置する
+    // パターンネームテーブルの転送の設定
+    videoTransfer.vram0_src = (i16)logoPatternNameTable+0x00;// 転送元アドレス設定
+    videoTransfer.vram0_dst = VIDEO_GRAPHIC1_PATTERN_NAME_TABLE+BACK_PATTERN_NAME_TABLE_LOGO+0x00;// 転送先アドレス設定
+    videoTransfer.vram0_bytes = 0x10;// 転送バイト数設定
+    videoTransfer.vram1_src = (i16)logoPatternNameTable+0x10;// 転送元アドレス設定
+    videoTransfer.vram1_dst = VIDEO_GRAPHIC1_PATTERN_NAME_TABLE+BACK_PATTERN_NAME_TABLE_LOGO+0x20;// 転送先アドレス設定
+    videoTransfer.vram1_bytes = 0x10;// 転送バイト数設定
+    request |= (1 << REQUEST_VRAM);// V-Blank 中の転送の開始
+}
+void BackRestoreLogo(void) { // ロゴの背景を復旧する
+    // パターンネームテーブルの転送の設定
+    videoTransfer.vram0_src = (i16)bg+BACK_PATTERN_NAME_TABLE_LOGO+0x00;// 転送元アドレス設定
+    videoTransfer.vram0_dst = VIDEO_GRAPHIC1_PATTERN_NAME_TABLE+BACK_PATTERN_NAME_TABLE_LOGO+0x00;// 転送先アドレス設定
+    videoTransfer.vram0_bytes = 0x10;// 転送バイト数設定
+    videoTransfer.vram1_src = (i16)bg+BACK_PATTERN_NAME_TABLE_LOGO+0x20;// 転送元アドレス設定
+    videoTransfer.vram1_dst = VIDEO_GRAPHIC1_PATTERN_NAME_TABLE+BACK_PATTERN_NAME_TABLE_LOGO+0x20;// 転送先アドレス設定
+    videoTransfer.vram1_bytes = 0x10;// 転送バイト数設定
+    request |= (1 << REQUEST_VRAM);// V-Blank 中の転送の開始
+}
 void BackStoreMessage(u8 a) { // メッセージを配置する
     // パターンネームテーブルの転送の設定
     // VRAM0 転送元アドレス設定

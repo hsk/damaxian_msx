@@ -7,9 +7,11 @@ System.rel      :   System.c \
 Math.rel        :   Math.c \
                     bios.h Math.h
 App.rel         :   App.c \
-                    bios.h vdp.h System.h App.h Back.h Game.h
+                    bios.h vdp.h System.h App.h Back.h Title.h Game.h
 Back.rel        :   Back.c \
                     bios.h vdp.h System.h App.h Back.h
+Title.rel       :   Title.c \
+                    bios.h System.h App.h Title.h
 
 Game.rel        :   Game.c \
                     bios.h System.h Math.h App.h Back.h Game.h Ship.h Shot.h Bullet.h

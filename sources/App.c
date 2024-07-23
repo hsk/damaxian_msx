@@ -5,6 +5,7 @@
 #include "Math.h"
 #include "App.h"
 #include "Back.h"
+#include "Title.h"
 #include "Game.h"
 // 外部変数宣言
 extern const u8 const pattern[];
@@ -34,11 +35,12 @@ static void AppLoad(void) { // アプリケーションを読み込む
     videoRegister[VDP_R7] = 0x07;// 背景色の設定
     videoRegister[VDP_R1] |= (1 << VDP_R1_BL)|(1<<VDP_R1_SI);// スプライトの設定と表示の開始
     request |= (1 << REQUEST_VIDEO_REGISTER);// V-Blank 中の転送の開始
-    appMode = APP_MODE_GAME;// モードの更新
-    appState = 0;// 状態の更新
+    appMode = APP_MODE_TITLE;// モードの更新
+    appState = TITLE_STATE_INIT;// 状態の更新
 }
 void AppUpdate(void) { // アプリケーションを更新する
     if (appMode == APP_MODE_LOAD) AppLoad();          // 読み込み
+    else if (appMode == APP_MODE_TITLE) TitleUpdate();// タイトル画面
     else if (appMode == APP_MODE_GAME) GameUpdate();  // ゲーム画面
     SystemGetRandom();
 }
