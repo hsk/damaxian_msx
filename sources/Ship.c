@@ -15,7 +15,6 @@ SHIP ship; // パラメータ
 void ShipInitialize(void) { // 自機を初期化する
     ship.state = SHIP_STATE_PLAY; // 状態の設定
     ship.phase = 0;
-    ship.nodamage = 0x80;// ノーダメージの設定
 }
 static void ShipNull(void);
 static void ShipPlay(void);
@@ -27,6 +26,10 @@ void ShipUpdate(void) { // 自機を更新する
     else                           ShipBomb(); // 爆発
 }
 static void ShipNull(void) { // 自機はなし
+    if (ship.phase == 0) {// 初期化
+        ship.nodamage = 0x80; // ノーダメージの設定
+        ship.phase++;         // 状態の更新
+    }// 待機の処理
     sprite[GAME_SPRITE_SHIP+0x00] = 0xc0;// 描画の開始
     sprite[GAME_SPRITE_SHIP+0x01] = 0xc0;
     sprite[GAME_SPRITE_SHIP+0x02] = 0xc0;
@@ -35,12 +38,15 @@ static void ShipNull(void) { // 自機はなし
 static void ShipPlay(void) { // 自機を操作する
     if (ship.phase==0) {// 初期化
         ship.x = 0x60;// 位置の設定
-        ship.y = 0xb1;
+        ship.y = 0xc8;
+        ship.nodamage = 0x80;// ノーダメージの設定
         ship.phase++;// 状態の更新
     }// 待機処理
-    if (ship.nodamage)ship.nodamage--;
+    if (ship.nodamage) ship.nodamage--; // ノーダメージの更新
     // 自機を定位置に移動
-    if (gameFlag&(1<<GAME_FLAG_PLAYABLE)) {// 操作可能かどうか
+    if (ship.y >= 0xb1) {
+        ship.y--;
+    } else if (gameFlag&(1<<GAME_FLAG_PLAYABLE)) {// 操作可能かどうか
         // Ｘ方向の移動
         if (input[INPUT_KEY_LEFT]) {// ←が押された
             if (ship.x>=0x8+2) ship.x-=2;

@@ -15,5 +15,6 @@ void AppUpdate(void);
 extern u8 appMode;        // モード
 extern u8 appState;       // 状態
 extern u8 appPhase;
+extern u8 appTimer[4];    // タイマ
 #define DI() __asm di __endasm
 #define EI() __asm ei __endasm

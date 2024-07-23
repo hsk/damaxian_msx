@@ -11,6 +11,7 @@
 #include "Bullet.h"
 // 変数の定義
 u8 gameFlag;   // フラグ
+static u8 gameCount;   // カウント
 static u8 gameBackAngle;   // 撃ち返し
 static i16 gameBackCos;
 static i16 gameBackSin;
@@ -18,11 +19,19 @@ static void GameInitialize(void);
 static void GameLoad(void);
 static void GameStart(void);
 static void GamePlay(void);
+static void GameTimeUp(void);
+static void GameOver(void);
+static void GameUnload(void);
+static void GameEnd(void);
 void GameUpdate(void) { // ゲームを更新する
     if (appState == GAME_STATE_INITIALIZE)   GameInitialize();// 初期化
     else if (appState == GAME_STATE_LOAD)    GameLoad();      // ロード
     else if (appState == GAME_STATE_START)   GameStart();     // 開始
     else if (appState == GAME_STATE_PLAY)    GamePlay();      // プレイ
+    else if (appState == GAME_STATE_TIMEUP)  GameTimeUp();    // タイムアップ
+    else if (appState == GAME_STATE_OVER)    GameOver();      // オーバー
+    else if (appState == GAME_STATE_UNLOAD)  GameUnload();    // アンロード
+    else                                     GameEnd();       // 終了
     // 一時停止
     if (gameFlag & (1 << GAME_FLAG_PAUSE)) return;
     BackUpdate();   // 背景の更新
@@ -30,10 +39,17 @@ void GameUpdate(void) { // ゲームを更新する
     ShotUpdate();   // ショットの更新
     EnemyUpdate();  // 敵の更新
     BulletUpdate(); // 弾の更新
+    // ステータスの更新
+    if (gameFlag & (1 << GAME_FLAG_STATUS)) BackTransferStatus();
 }
 static void GameInitialize(void) { // ゲームを初期化する
     // スプライトのクリア
     SystemClearSprite();
+    // タイマの初期化
+    appTimer[0] = 0x03;
+    appTimer[1] = 0;
+    appTimer[2] = 0;
+    appTimer[3] = 0;
     ShipInitialize();   // 自機の初期化
     ShotInitialize();   // ショットの初期化
     EnemyInitialize();  // 敵の初期化
@@ -54,16 +70,44 @@ static void GameLoad(void) { // ゲームをロードする
 }
 static void GameStart(void) { // ゲームを開始する
     if (appPhase == 0) {// 初期化
+        BackStoreMessage(BACK_MESSAGE_START);// メッセージのロード
         // フラグの設定
         gameFlag &= ~((1<<GAME_FLAG_PLAYABLE)|(1<<GAME_FLAG_PAUSE)|(1<<GAME_FLAG_STATUS));
         appPhase++; // 状態の更新
     }
+    if (appPhase++ != 60*3) return;
+    BackRestoreMessage(); // メッセージのアンロード
     appState = GAME_STATE_PLAY; // 状態の更新
     appPhase = APP_PHASE_NULL;
 }
 static void GameCheckShotEnemy(void);
 static void GameCheckShipBullet(void);
 static void GameCheckShipEnemy(void);
+static void GamePlay2(void) {
+    // タイマの更新
+    if (appTimer[0]|appTimer[1]|appTimer[2]|appTimer[3]) {
+        appTimer[3]--;
+        if (appTimer[3] == 255) {
+            appTimer[3] = 9;
+            appTimer[2]--;
+            if (appTimer[2] == 255) {
+                appTimer[2] = 9;
+                appTimer[1]--;
+                if (appTimer[1] == 255) {
+                    appTimer[1] = 9;
+                    appTimer[0]--;
+                    if (appTimer[0] == 255) {
+                        appTimer[0] = 0;
+                    }
+                }
+            }
+        }
+    }
+    // 倒した数の設定
+    GameCheckShotEnemy();  // ショットと敵のヒットチェック
+    GameCheckShipBullet(); // 自機と弾のヒットチェック
+    GameCheckShipEnemy();  // 自機と敵のヒットチェック
+}
 static void GamePlay(void) { // ゲームをプレイする
     {
         if (appPhase == 0) {// 初期化
@@ -78,9 +122,59 @@ static void GamePlay(void) { // ゲームをプレイする
         }
     }
     if (gameFlag & (1<<GAME_FLAG_PAUSE)) return; // 一時停止
-    GameCheckShotEnemy();
-    GameCheckShipBullet(); // 自機と弾のヒットチェック
-    GameCheckShipEnemy();  // 自機と敵のヒットチェック
+    GamePlay2();
+    {
+        // タイムアップ
+        if (appTimer[0]|appTimer[1]|appTimer[2]|appTimer[3]) return;
+        // 状態の更新
+        appState = GAME_STATE_TIMEUP;
+        appPhase = APP_PHASE_NULL;
+    }
+}
+static void GameTimeUp(void) { // ゲームがタイムアップする
+    if (appPhase == 0) {
+        BackStoreMessage(BACK_MESSAGE_TIMEUP); // メッセージのロード
+        gameCount = 180; // カウントの設定
+        // フラグの設定
+        gameFlag &= ~((1<<GAME_FLAG_PLAYABLE)|(1<<GAME_FLAG_PAUSE)|(1<<GAME_FLAG_STATUS));
+        appPhase++; // 状態の更新
+    }
+    // カウントの更新
+    gameCount--;
+    if (gameCount) return;
+    // 更新
+    // 状態の更新
+    appState = GAME_STATE_OVER;
+    appPhase = APP_PHASE_NULL;
+}
+static void GameOver(void) { // ゲームオーバーになる
+    if (appPhase == 0) {// 初期化
+        BackStoreMessage(BACK_MESSAGE_GAMEOVER); // メッセージのロード
+        gameCount = 180;// カウントの設定
+        // フラグの設定
+        gameFlag &= ~((1<<GAME_FLAG_PLAYABLE)|(1<<GAME_FLAG_PAUSE)|(1<<GAME_FLAG_STATUS));
+        appPhase++;// 状態の更新
+    }
+    // カウントの更新
+    gameCount--;
+    if (gameCount==0) {
+        // メッセージのアンロード
+        BackRestoreMessage();
+        // 状態の更新
+        appState = GAME_STATE_UNLOAD;
+        appPhase = APP_PHASE_NULL;
+    }
+}
+static void GameUnload(void) { // ゲームをアンロードする
+    if (appPhase == 0) {// 初期化
+        gameFlag = 0;   // フラグの設定
+        appPhase++;     // 状態の更新
+    }
+    appState = GAME_STATE_END; // 状態の更新
+}
+static void GameEnd(void) { // ゲームを終了する
+    appMode = APP_MODE_GAME; // モードの更新
+    appState = 0; // 状態の更新
 }
 static void GameShootBack(ENEMY* ix);
 static void GameCheckShotEnemy(void) { // ショットと敵のヒットチェックを行う
@@ -179,7 +273,7 @@ static void b(void) {
         gameBackSin = SystemGetSin(a);
         bulletEntry.spx = 0;
         bulletEntry.spy = 0;
-        hl = (void*)(backSpeedTable+c*2);
+        hl = (void*)(backSpeedTable+c*2+(appTimer[0] << 4));
         for (u8 d = *hl++;d;d--) {
             bulletEntry.spx += gameBackCos;
             bulletEntry.spy += gameBackSin;

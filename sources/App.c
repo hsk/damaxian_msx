@@ -13,6 +13,7 @@ extern const u8 const spritePattern[];
 u8 appMode;         // モード
 u8 appState;        // 状態
 u8 appPhase;
+u8 appTimer[4];     // タイマ
 
 void AppInitialize(void) __naked { // アプリケーションを初期化する
     // スクリーンモードの設定
@@ -24,6 +25,8 @@ void AppInitialize(void) __naked { // アプリケーションを初期化する
     LoadVram(VIDEO_GRAPHIC1_SPRITE_GENERATOR_TABLE,spritePattern,0x800);
     EI();// 割り込み禁止の解除
     // アプリケーションの初期化
+        // タイマの初期化
+        for(u8 i=0;i<4;i++) appTimer[i]=0;
     appMode = APP_MODE_LOAD;// モードの初期化
 }
 static void AppLoad(void) { // アプリケーションを読み込む

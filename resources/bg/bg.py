@@ -28,4 +28,5 @@ def print_tile(name,tile):
 
 print('#include "bios.h"')
 print_tile("bg",load_tile("bg.tmj"))
+print_tile("messagePatternNameTable",load_tile("msg.tmj"))
 print_point("enemyPointTable",load_layer("bg.tmj","enemyPointTable"))

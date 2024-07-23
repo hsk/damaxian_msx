@@ -11,6 +11,9 @@
 extern const u8 const enemyPointTable[];
 static const u8 const enemyStayTable[] = {
     0x7f, 0x00,
+    0x7f, 0x40,
+    0xff, 0x00,
+    0xff, 0x00,
 };
 static const u8 const enemySpriteTable[] = {
     0xf8, 0xf8, 0x80, 0x0a,      // 0:→
@@ -145,7 +148,7 @@ static void EnemyIn(ENEMY* ix) { // 敵がインする
 static void EnemyStay(ENEMY* ix) { // 敵が待機する
     if (ix->phase==0) {
         // カウントの設定
-        u8* hl = (void*)&enemyStayTable[0];
+        u8* hl = (void*)&enemyStayTable[appTimer[0] << 1];
         u8 a = SystemGetRandom() & (*hl++);
         a += *hl;
         ix->count0 = a;
