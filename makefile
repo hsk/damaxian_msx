@@ -89,8 +89,23 @@ CSRCS			=	main.c System.c Sound.c Math.c \
 # object files
 OBJS			=	$(ASSRCS:.s=.rel) $(CSRCS:.c=.rel)
 
-r: $(TARGET).com
+all: $(TARGET).com
+
+# build and run on openMSX (press SPACE on the title screen to start)
+run: $(TARGET).com
 	openmsx -machine Sanyo_PHC-70FD2 -diska $(OUTDIR)
+
+# build with hlcc (the hlang C front end, ../bin/hlcc.ml) into a ROM cartridge, and run it
+HLANG			=	..
+HLCC			=	$(HLANG)/_build/default/bin/hlcc.exe
+
+rom2: $(BINDIR)
+	cd $(HLANG); dune build bin/hlcc.exe
+	$(HLCC) $(addprefix $(SRCDIR)/,$(CSRCS))
+	mv $(SRCDIR)/main.rom $(BINDIR)/$(TARGET).rom
+
+run2: rom2
+	openmsx -machine C-BIOS_MSX1 -cart $(BINDIR)/$(TARGET).rom
 
 # build project target
 #
@@ -131,7 +146,7 @@ resource:
 
 # phony targets
 #
-.PHONY:				clean depend
+.PHONY:				all run rom2 run2 tool clean depend
 
 
 # include depend file

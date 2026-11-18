@@ -198,7 +198,7 @@ static void BackMakeTimerPatternNameTable(void) {
     u8 b = 3, c = 0;
     do {
         u8 a = *hl++;
-        if (a) c = #0x10; // 0 以外なら0x10を加えるようにする
+        if (a) c = 0x10; // 0 以外なら0x10を加えるようにする
         a += c;
         *de++ = a;
     } while(--b);

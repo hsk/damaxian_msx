@@ -177,22 +177,22 @@ void SystemInitializeSound(void) { // サウンドを初期化する
         pop     de
     __endasm;
     // 2. サウンドレジスタの初期化
-    soundRegister[0x00] = #0b01010101;
-    soundRegister[0x01] = #0b00000000;
-    soundRegister[0x02] = #0b00000000;
-    soundRegister[0x03] = #0b00000000;
-    soundRegister[0x04] = #0b00000000;
-    soundRegister[0x05] = #0b00000000;
-    soundRegister[0x06] = #0b00000000;
-    soundRegister[0x07] = #0b10111111;
-    soundRegister[0x08] = #0b00000000;
-    soundRegister[0x09] = #0b00000000;
-    soundRegister[0x0a] = #0b00000000;
-    soundRegister[0x0b] = #0b00001011;
-    soundRegister[0x0c] = #0b00000000;
-    soundRegister[0x0d] = #0b00000000;
-    soundRegister[0x0e] = #0b00000000;
-    soundRegister[0x0f] = #0b00000000;
+    soundRegister[0x00] = 0b01010101;
+    soundRegister[0x01] = 0b00000000;
+    soundRegister[0x02] = 0b00000000;
+    soundRegister[0x03] = 0b00000000;
+    soundRegister[0x04] = 0b00000000;
+    soundRegister[0x05] = 0b00000000;
+    soundRegister[0x06] = 0b00000000;
+    soundRegister[0x07] = 0b10111111;
+    soundRegister[0x08] = 0b00000000;
+    soundRegister[0x09] = 0b00000000;
+    soundRegister[0x0a] = 0b00000000;
+    soundRegister[0x0b] = 0b00001011;
+    soundRegister[0x0c] = 0b00000000;
+    soundRegister[0x0d] = 0b00000000;
+    soundRegister[0x0e] = 0b00000000;
+    soundRegister[0x0f] = 0b00000000;
     // 3. サウンドデータの初期化
         soundRequest[0] = 0;
         soundRequest[1] = 0;
